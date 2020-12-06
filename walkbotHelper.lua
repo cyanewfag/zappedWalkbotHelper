@@ -271,9 +271,3 @@ function on_gameevent(e)
         end
     end
 end
-
-function on_command(cmd)
-    if cmd:get_button(buttons.in_reload) then
-        safeClientCmd("-reload")
-    end
-end
