@@ -167,14 +167,14 @@ function on_render()
         local team = safeGetProp(localPlayer, "m_iTeam");
         local health = safeGetProp(localPlayer, "m_iHealth");
 
-        if (controls[12][2]:get_value()) then
+        if (controls[9][2]:get_value()) then
             checkVisibleEnemies();
         else
             visible = false;
         end
 
         if (utils.timestamp() - reloadTime >= 1) then
-            if (controls[11][2]:get_value()) then
+            if (controls[8][2]:get_value()) then
                 local weaponEntity = entitylist.get_player_weapon(localPlayer)
                 if (weaponEntity ~= nil) then
                     if (weaponEntity:is_weapon()) then
@@ -188,7 +188,7 @@ function on_render()
                                 safeClientCmd("-reload");
                                 reloadTime = utils.timestamp();
                             else
-                                if ((curAmmo / saveAmmo) * 100 <= controls[10][2]:get_value()) then
+                                if ((curAmmo / saveAmmo) * 100 <= controls[7][2]:get_value()) then
                                     if (not reloadInProgress) then
                                         reloadInProgress = true;
                                         safeClientCmd("+reload");
@@ -210,7 +210,7 @@ function on_render()
                             if (not checkVisibleEnemies()) then
                                 if (checkForHasWeapon(localPlayer, 104)) then
                                     if (controls[9][2]:get_value()) then
-                                        if (health <= controls[8][2]:get_value()) then      
+                                        if (health <= controls[5][2]:get_value()) then      
                                             if (not checkForWeapon(localPlayer, 104)) then
                                                 safeClientCmd("slot12")
                                             else
