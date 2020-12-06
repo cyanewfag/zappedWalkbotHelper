@@ -1,5 +1,5 @@
 local localPlayer = entitylist.get_localplayer();
-local controls = {{"Enabled", gui.add_checkbox("Enabled", true)}, {"Time", gui.add_slider("Reset Time (s)", 5, 180, 180)}, {"Score", gui.add_slider("Spectate Score", 0, 350, 310)}, {"Name Stealer", gui.add_checkbox("Invisible Name", true)}, {"Autobuy", gui.add_checkbox("Autobuy", true)}, {"Autobuy Main", gui.add_dropdown("Autobuy Main", {"galilar","famas","ak47","m4a1","m4a1_silencer","ssg08","aug","sg556","awp","scar20","g3sg1","nova","xm1014","mag7","m249","negev","mac10","mp9","mp7","ump45","p90","bizon"})}, {"Autobuy Secondary", gui.add_dropdown("Autobuy Secondary", {"glock","hkp2000","usp_silencer","elite","p250","tec9","fn57","deagle"})}, {"Auto Health-Shot Health", gui.add_slider("Health-Shot Health", 1, 99, 35)}, {"Auto Health-Shot", gui.add_checkbox("Auto Health-Shot", true)}, {"Auto-Reload", gui.add_slider("Auto-Reload (Percent)", 1, 100, 25)}, {"Auto-Reload", gui.add_checkbox("Auto-Reload", true)}};
+local controls = {{"Enabled", gui.add_checkbox("Enabled", true)}, {"Time", gui.add_slider("Reset Time (s)", 5, 180, 180)}, {"Score", gui.add_slider("Spectate Score", 0, 350, 310)}, {"Name Stealer", gui.add_checkbox("Invisible Name", true)}, {"Autobuy", gui.add_checkbox("Autobuy", true)}, {"Autobuy Main", gui.add_dropdown("Autobuy Main", {"galilar","famas","ak47","m4a1","m4a1_silencer","ssg08","aug","sg556","awp","scar20","g3sg1","nova","xm1014","mag7","m249","negev","mac10","mp9","mp7","ump45","p90","bizon"})}, {"Autobuy Secondary", gui.add_dropdown("Autobuy Secondary", {"glock","hkp2000","usp_silencer","elite","p250","tec9","fn57","deagle"})}, {"Auto Health-Shot Health", gui.add_slider("Health-Shot Health", 1, 99, 35)}, {"Auto Health-Shot", gui.add_checkbox("Auto Health-Shot", true)}, {"Auto-Reload", gui.add_slider("Auto-Reload (Percent)", 1, 100, 25)}, {"Auto-Reload", gui.add_checkbox("Auto-Reload", true)}, {"Visibility Check", gui.add_checkbox("Visibility Check", true)}};
 local savedTime = utils.timestamp();
 local visibleCheck = savedTime;
 local reloadTime = savedTime;
@@ -167,7 +167,11 @@ function on_render()
         local team = safeGetProp(localPlayer, "m_iTeam");
         local health = safeGetProp(localPlayer, "m_iHealth");
 
-        checkVisibleEnemies();
+        if (controls[12][2]:get_value()) then
+            checkVisibleEnemies();
+        else
+            visible = false;
+        end
 
         if (utils.timestamp() - reloadTime >= 1) then
             if (controls[11][2]:get_value()) then
