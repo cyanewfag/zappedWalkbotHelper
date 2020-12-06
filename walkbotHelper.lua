@@ -1,8 +1,10 @@
 local localPlayer = entitylist.get_localplayer();
-local controls = {{"Enabled", gui.add_checkbox("Enabled", true)}, {"Time", gui.add_slider("Reset Time (s)", 5, 180, 180)}, {"Score", gui.add_slider("Spectate Score", 0, 350, 310)}, {"Name Stealer", gui.add_checkbox("Invisible Name", true)}, {"Autobuy", gui.add_checkbox("Autobuy", true)}, {"Autobuy Main", gui.add_dropdown("Autobuy Main", {"galilar","famas","ak47","m4a1","m4a1_silencer","ssg08","aug","sg556","awp","scar20","g3sg1","nova","xm1014","mag7","m249","negev","mac10","mp9","mp7","ump45","p90","bizon"})}, {"Autobuy Secondary", gui.add_dropdown("Autobuy Secondary", {"glock","hkp2000","usp_silencer","elite","p250","tec9","fn57","deagle"})}, {"Auto Health-Shot Health", gui.add_slider("Health-Shot Health", 1, 99, 35)}, {"Auto Health-Shot", gui.add_checkbox("Auto Health-Shot", true)}};
+local controls = {{"Enabled", gui.add_checkbox("Enabled", true)}, {"Time", gui.add_slider("Reset Time (s)", 5, 180, 180)}, {"Score", gui.add_slider("Spectate Score", 0, 350, 310)}, {"Name Stealer", gui.add_checkbox("Invisible Name", true)}, {"Autobuy", gui.add_checkbox("Autobuy", true)}, {"Autobuy Main", gui.add_dropdown("Autobuy Main", {"galilar","famas","ak47","m4a1","m4a1_silencer","ssg08","aug","sg556","awp","scar20","g3sg1","nova","xm1014","mag7","m249","negev","mac10","mp9","mp7","ump45","p90","bizon"})}, {"Autobuy Secondary", gui.add_dropdown("Autobuy Secondary", {"glock","hkp2000","usp_silencer","elite","p250","tec9","fn57","deagle"})}, {"Auto Health-Shot Health", gui.add_slider("Health-Shot Health", 1, 99, 35)}, {"Auto Health-Shot", gui.add_checkbox("Auto Health-Shot", true)}, {"Auto-Reload", gui.add_slider("Auto-Reload (Percent)", 1, 100, 25)}, {"Auto-Reload", gui.add_checkbox("Auto-Reload", true)}};
 local savedTime = utils.timestamp();
-local visibleCheck = utils.timestamp();
+local visibleCheck = savedTime;
+local reloadTime = savedTime;
 local inProgress = false;
+local reloadInProgress = false;
 local visible = false;
 
 function safeLog(str, r, g, b, a)
@@ -35,16 +37,24 @@ function safeSetName(name)
     end
 end
 
-function safeGetProp(entity, str, index)
+function safeGetProp(entity, str, index, custom)
     if (engine.in_game()) then
         if (entity ~= nil and str ~= nil) then
             str = tostring(str)
             if (str ~= "") then
                 if (index == nil) then
-                    local prop = playerresources.get_prop(entity, str);
+                    local prop;
+                    if (custom) then
+                        prop = entity:get_prop(str);
+                    else
+                        prop = playerresources.get_prop(entity, str);
+                    end
                     if (prop == nil) then return nil; else return prop; end
                 else
-                    local prop = playerresources.get_prop(entity, str, index);
+                    local prop;
+                    if (not custom) then
+                        prop = playerresources.get_prop(entity, str, index);
+                    end
                     if (prop == nil) then return nil; else return prop; end
                 end
                 return nil;
@@ -143,9 +153,9 @@ function checkVisibleEnemies()
         visible = false;
         visibleCheck = utils.timestamp();
         return visible;
-    else
-        return visible;
     end
+
+    return visible;
 end
 
 function on_render()
@@ -158,6 +168,35 @@ function on_render()
         local health = safeGetProp(localPlayer, "m_iHealth");
 
         checkVisibleEnemies();
+
+        if (utils.timestamp() - reloadTime >= 1) then
+            if (controls[11][2]:get_value()) then
+                local weaponEntity = entitylist.get_player_weapon(localPlayer)
+                if (weaponEntity ~= nil) then
+                    if (weaponEntity:is_weapon()) then
+                        local curAmmo = safeGetProp(weaponEntity, "m_iClip1", nil, true)
+                        if (curAmmo ~= nil) then
+                            -- this is retarded but I'm not adding a long table of weapon clip sizes cause that's a lot of work. smd
+                            local saveAmmo = safeGetProp(weaponEntity, "m_iPrimaryReserveAmmoCount", nil, true) / 3;
+
+                            if (reloadInProgress) then
+                                reloadInProgress = false;
+                                safeClientCmd("-reload");
+                                reloadTime = utils.timestamp();
+                            else
+                                if ((curAmmo / saveAmmo) * 100 <= controls[10][2]:get_value()) then
+                                    if (not reloadInProgress) then
+                                        reloadInProgress = true;
+                                        safeClientCmd("+reload");
+                                        reloadTime = utils.timestamp();
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
 
         if (score ~= nil) then
             if (team ~= nil) then
@@ -230,5 +269,11 @@ function on_gameevent(e)
                 buyItem({primary, secondary})
             end
         end
+    end
+end
+
+function on_command(cmd)
+    if cmd:get_button(buttons.in_reload) then
+        safeClientCmd("-reload")
     end
 end
